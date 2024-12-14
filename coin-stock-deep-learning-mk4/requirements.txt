@@ -1,0 +1,7 @@
+matplotlib==3.3.3
+numpy==1.18.5
+pandas
+requests==2.25.1
+scikit-learn
+tensorflow-gpu==2.3.0
+tqdm==4.59.0
