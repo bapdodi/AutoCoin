@@ -1,4 +1,3 @@
-#Upbit 종목 선택, 종목에 대한 데이터 추출
 import requests
 import datetime
 import pandas as pd
@@ -6,17 +5,16 @@ import json
 import re
 import time
 import os
-data = 40000
 
-def Choose_coin(coin_list = None):
+def Choose_coin(coin_list=None):
     """
     KRW-coin의 종목을 korean, english를 dic형태로 반환
     coin_list에는 korean KRW-coin을 리스트형태로 지정해주어야 한다.
     None인 경우 KRW-coin전체를 반환
     """
     url = "https://api.upbit.com/v1/market/all"
-    querystring = {"isDetails":"false"}
-    response = requests.request("GET", url, params=querystring)
+    querystring = {"isDetails": "false"}
+    response = requests.get(url, params=querystring)
     contents = response.json()
     KRW_coin_dic = {}
 
@@ -24,12 +22,8 @@ def Choose_coin(coin_list = None):
         if "KRW" in x['market']:
             KRW_coin_dic[str(x['market'])] = x['korean_name']
     if coin_list is not None:
-        for key, value in list(KRW_coin_dic.items()):
-            if value not in coin_list:
-                del(KRW_coin_dic[str(key)])
-        return KRW_coin_dic
-    else:
-        return KRW_coin_dic
+        return {key: value for key, value in KRW_coin_dic.items() if value in coin_list}
+    return KRW_coin_dic
 
 
 def get_url_ohlcv(interval):
@@ -37,125 +31,113 @@ def get_url_ohlcv(interval):
     candle에 대한 요청 주소를 얻는 함수
     :param interval: day(일봉), minute(분봉), week(주봉), 월봉(month)
     :return: candle 조회에 사용되는 url
-    opening_price : 시가
-    high_price : 고가
-    low_price : 저가
-    trade_price : 종가
-    candle_acc_trade_price : 누적 거래 금액
-    candle_acc_trade_volume : 누적 거래량
-    prev_closing_price : 전일 종가(UTC 0시 기준)
-    change_price : 전일 종가 대비 변화 금액
-    change_rate : 전일 종가 대비 변화량
     """
-    if interval in ["day", "days"]:
-        url = "https://api.upbit.com/v1/candles/days"
-        candle_list = ["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume", "prev_closing_price", "change_price", "change_rate"]
-        timestpe = 24 * 60
-    elif interval in ["minute1", "minutes1"]:
-        url = "https://api.upbit.com/v1/candles/minutes/1"
-        candle_list = ["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume"]
-        timestpe = 1
-    elif interval in ["minute3", "minutes3"]:
-        url = "https://api.upbit.com/v1/candles/minutes/3"
-        candle_list = ["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume"]
-        timestpe = 3
-    elif interval in ["minute5", "minutes5"]:
-        url = "https://api.upbit.com/v1/candles/minutes/5"
-        candle_list = ["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume"]
-        timestpe = 5
-    elif interval in ["minute10", "minutes10"]:
-        url = "https://api.upbit.com/v1/candles/minutes/10"
-        candle_list = ["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume"]
-        timestpe = 10
-    elif interval in ["minute15", "minutes15"]:
-        url = "https://api.upbit.com/v1/candles/minutes/15"
-        candle_list = ["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume"]
-        timestpe = 15
-    elif interval in ["minute30", "minutes30"]:
-        url = "https://api.upbit.com/v1/candles/minutes/30"
-        candle_list = ["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume"]
-        timestpe = 30
-    elif interval in ["minute60", "minutes60"]:
-        url = "https://api.upbit.com/v1/candles/minutes/60"
-        candle_list = ["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume"]
-        timestpe = 60
-    elif interval in ["minute240", "minutes240"]:
-        url = "https://api.upbit.com/v1/candles/minutes/240"
-        candle_list = ["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume"]
-        timestpe = 240
-    elif interval in ["week",  "weeks"]:
-        url = "https://api.upbit.com/v1/candles/weeks"
-        candle_list = ["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume"]
-        timestpe = 24 * 60 * 7
-    elif interval in ["month", "months"]:
-        url = "https://api.upbit.com/v1/candles/months"
-        candle_list = ["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume"]
-        timestpe = 24 * 60 * 7 * 30
-    else:
-        url = "https://api.upbit.com/v1/candles/days"
-        candle_list = ["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume", "prev_closing_price", "change_price", "change_rate"]
-        timestpe = 24 * 60
-    return url, timestpe, candle_list
+    intervals = {
+        "day": ("https://api.upbit.com/v1/candles/days", 24 * 60),
+        "minute1": ("https://api.upbit.com/v1/candles/minutes/1", 1),
+        "minute3": ("https://api.upbit.com/v1/candles/minutes/3", 3),
+        "minute5": ("https://api.upbit.com/v1/candles/minutes/5", 5),
+        "minute10": ("https://api.upbit.com/v1/candles/minutes/10", 10),
+        "minute15": ("https://api.upbit.com/v1/candles/minutes/15", 15),
+        "minute30": ("https://api.upbit.com/v1/candles/minutes/30", 30),
+        "minute60": ("https://api.upbit.com/v1/candles/minutes/60", 60),
+        "minute240": ("https://api.upbit.com/v1/candles/minutes/240", 240),
+        "week": ("https://api.upbit.com/v1/candles/weeks", 24 * 60 * 7),
+        "month": ("https://api.upbit.com/v1/candles/months", 24 * 60 * 7 * 30),
+    }
 
-def get_coin_data(local_path = None, start_day = None, step = None, coin_list = None):
+    url, timestep = intervals.get(interval, intervals["day"])
+    candle_list = ["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume"]
+    return url, timestep, candle_list
+
+
+def get_coin_data(local_path=None, start_day=None, step=None, coin_list=None):
     """
-    start_day =yyyymmdd
-    coin_list에 대해 전체 데이터 1day간격 데이터를 추출
+    coin_list에 대해 전체 데이터를 1day간격으로 추출하고, 
     local_path의 data폴더에 저장
     """
     url, timestep, candle_list = get_url_ohlcv(step)
-    start_day = datetime.datetime(int(start_day[:4]), int(start_day[4:6]), int(start_day[-2:]), 0, 0)
-    time_diff = int(((datetime.datetime.now() - start_day).total_seconds() / 60.0) /timestep)
+    start_day = datetime.datetime(int(start_day[:4]), int(start_day[4:6]), int(start_day[6:]), 0, 0)
+    time_diff = int(((datetime.datetime.now() - start_day).total_seconds() / 60.0) / timestep)
 
-    KRW_coin_dic = Choose_coin(coin_list = coin_list)
+    KRW_coin_dic = Choose_coin(coin_list=coin_list)
+    
     for market in KRW_coin_dic.keys():
-        count = [0, 0, 0]
         df = pd.DataFrame()
-        date_now =  datetime.datetime.now()
-        for i in range(0, (time_diff - 200), 200):
-            date = (date_now - datetime.timedelta(minutes= i * timestep + 9 * 60)).strftime('%Y-%m-%d %H:%M:%S')
-            querystring = {"market":market, "to":date, "count":str(200)} #UTC
-            response = requests.request("GET", url, params=querystring)
+        date_now = datetime.datetime.now()
+        
+        # 필요한 부분만 한번에 처리할 수 있도록 loop 수정
+        for i in range(0, time_diff, 200):
+            date = (date_now - datetime.timedelta(minutes=i * timestep + 9 * 60)).strftime('%Y-%m-%d %H:%M:%S')
+            querystring = {"market": market, "to": date, "count": "200"}  # UTC
+            response = requests.get(url, params=querystring)
             contents = response.json()
             dt_list = [datetime.datetime.strptime(x['candle_date_time_kst'], "%Y-%m-%dT%H:%M:%S") for x in contents]
-            df = pd.concat([df, pd.DataFrame(contents, columns= candle_list, index=dt_list)])
+            df = pd.concat([df, pd.DataFrame(contents, columns=candle_list, index=dt_list)])
             time.sleep(0.1005)
-            print("load data: {}, {} / {}".format(market, i + 1, time_diff))            
-            df[::-1].to_csv(os.path.join(local_path,'data',market + '.csv'), mode='w')
-            count[0] = count[0] + 1
 
-        for i in range((200 * count[0]), (time_diff - 100), 100):
-            date = (date_now - datetime.timedelta(minutes= i * timestep + 9 * 60)).strftime('%Y-%m-%d %H:%M:%S')
-            querystring = {"market":market, "to":date, "count":str(100)} #UTC
-            response = requests.request("GET", url, params=querystring)
-            contents = response.json()
-            dt_list = [datetime.datetime.strptime(x['candle_date_time_kst'], "%Y-%m-%dT%H:%M:%S") for x in contents]
-            df = pd.concat([df, pd.DataFrame(contents, columns= candle_list, index=dt_list)])
-            time.sleep(0.1005)
-            print("load data: {}, {} / {}".format(market, i + 1, time_diff))            
-            df[::-1].to_csv(os.path.join(local_path,'data',market + '.csv'), mode='w')
-            count[1] = count[1] + 1
+            print(f"load data: {market}, {i + 1} / {time_diff}")  
+        
+        # 데이터를 파일로 저장
+        df[::-1].to_csv(os.path.join(local_path, 'data', market + '.csv'), mode='w')
 
-        for i in range((200 * count[0] + 100 * count[1]), (time_diff - 10), 10):
-            date = (date_now - datetime.timedelta(minutes= i * timestep + 9 * 60)).strftime('%Y-%m-%d %H:%M:%S')
-            querystring = {"market":market, "to":date, "count":str(10)} #UTC
-            response = requests.request("GET", url, params=querystring)
-            contents = response.json()
-            dt_list = [datetime.datetime.strptime(x['candle_date_time_kst'], "%Y-%m-%dT%H:%M:%S") for x in contents]
-            df = pd.concat([df, pd.DataFrame(contents, columns= candle_list, index=dt_list)])
-            time.sleep(0.1005)
-            print("load data: {}, {} / {}".format(market, i + 1, time_diff))            
-            df[::-1].to_csv(os.path.join(local_path,'data',market + '.csv'), mode='w')
-            count[2] = count[2] + 1
-
-        for i in range((200 * count[0] + 100 * count[1] + 10 * count[2]), time_diff):
-            date = (date_now - datetime.timedelta(minutes= i * timestep + 9 * 60)).strftime('%Y-%m-%d %H:%M:%S')
-            querystring = {"market":market, "to":date, "count":str(1)} #UTC
-            response = requests.request("GET", url, params=querystring)
-            contents = response.json()
-            dt_list = [datetime.datetime.strptime(x['candle_date_time_kst'], "%Y-%m-%dT%H:%M:%S") for x in contents]
-            df = pd.concat([df, pd.DataFrame(contents, columns= candle_list, index=dt_list)])
-            time.sleep(0.1005)
-            print("load data: {}, {} / {}".format(market, i + 1, time_diff))            
-            df[::-1].to_csv(os.path.join(local_path,'data',market + '.csv'), mode='w')
     return KRW_coin_dic
+
+
+
+
+
+
+def get_data(stock, step="day", start_day=None):
+    """
+    주어진 기간(start_day부터 60일 전까지) 동안의 과거 데이터를 자동으로 가져오는 함수
+    """
+    url, timestep, candle_list = get_url_ohlcv(step)
+    
+    # 60일 전부터 데이터를 가져오도록 설정
+    if start_day is None:
+        start_day = (datetime.datetime.now() - datetime.timedelta(days=60)).strftime("%Y%m%d")  # 60일 전 날짜
+    
+    # 시작 날짜를 datetime 형식으로 변환
+    start_day = datetime.datetime(int(start_day[:4]), int(start_day[4:6]), int(start_day[6:]), 0, 0)
+    
+    # 현재 날짜와 start_day의 차이 계산
+    time_diff = int(((datetime.datetime.now() - start_day).total_seconds() / 60.0) / timestep)
+    
+    df = pd.DataFrame()
+    
+    # 200개씩 데이터를 받아오는 방식
+    for i in range(0, time_diff, 200):
+        date = (datetime.datetime.now() - datetime.timedelta(minutes=i * timestep + 9 * 60)).strftime('%Y-%m-%d %H:%M:%S')
+        querystring = {"market": stock, "to": date, "count": "200"}  # UTC
+        response = requests.get(url, params=querystring)
+        contents = response.json()
+        
+        # 데이터프레임에 추가
+        dt_list = [datetime.datetime.strptime(x['candle_date_time_kst'], "%Y-%m-%dT%H:%M:%S") for x in contents]
+        df = pd.concat([df, pd.DataFrame(contents, columns=candle_list, index=dt_list)])
+        
+        time.sleep(0.1005)  # API 호출 제한을 지키기 위한 대기 시간
+        
+        print(f"데이터 로드 중: {stock}, {i + 1} / {time_diff}")
+    
+    # 데이터 역순으로 정렬하여 반환
+    return df[::-1]
+
+def get_new_data_sequence(stock, step="day", start_day=None):
+    """
+    60일 전부터의 데이터를 가져와 예측에 사용할 시퀀스 형태로 변환
+    """
+    # 과거 데이터를 가져오기
+    df_price = get_data(stock, step, start_day)
+
+    # 예시로 최근 60개 데이터 추출 (timesteps=60)
+    recent_data = df_price.tail(60)
+
+    # 필요한 피처 선택 (예: 종가, 거래량, 고가, 저가, 시가, 변동성 등)
+    new_data_sequence = recent_data[["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume"]].values
+
+    # 데이터 확인 (디버깅용)
+    print(f"new_data_sequence 크기: {new_data_sequence.shape}")
+
+    return new_data_sequence
