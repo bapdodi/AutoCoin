@@ -62,7 +62,7 @@ def coin_train(local_path=None, coin_list=None):
 
         # 콜백 설정
         earlystopping = EarlyStopping(monitor='val_loss', patience=3)
-        filename = os.path.join(local_path, 'checkpoint', stock + '.ckpt')
+        filename = os.path.join(local_path, 'checkpoint', stock + '.weights.h5')
         checkpoint = ModelCheckpoint(
             filename,
             save_weights_only=True,
