@@ -12,7 +12,8 @@ from tqdm import tqdm
 from upbit_market import Choose_coin
 
 def coin_train(local_path=None, coin_list=None):
-    # train Parameters
+    
+    # Train parameters
     timesteps = 60
     training_data_rate = 0.7
     learning_rate = 0.001
@@ -26,11 +27,11 @@ def coin_train(local_path=None, coin_list=None):
         scaler = MinMaxScaler()
         scale_cols = df_price.columns[1:].tolist()
 
-        # 결측치 처리 및 데이터 스케일링
+        # Handling missing values and scaling
         df_price[scale_cols] = df_price[scale_cols].fillna(0)
         scaled = scaler.fit_transform(df_price[scale_cols])
 
-        # Train/Test 데이터 분할
+        # Train/Test data split
         train_data = scaled[:int(len(scaled) * training_data_rate)]
         test_data = scaled[int(len(scaled) * training_data_rate):]
 
@@ -51,7 +52,7 @@ def coin_train(local_path=None, coin_list=None):
 
         print("Data split done")
 
-        # 모델 정의
+        # Model definition
         model = Sequential()
         model.add(LSTM(units=256, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
         model.add(LSTM(units=256, return_sequences=False))
@@ -60,7 +61,7 @@ def coin_train(local_path=None, coin_list=None):
 
         model.compile(optimizer=Adam(learning_rate=learning_rate), loss='mean_squared_error')
 
-        # 콜백 설정
+        # Callbacks setup
         earlystopping = EarlyStopping(monitor='val_loss', patience=3)
         filename = os.path.join(local_path, 'checkpoint', stock + '.weights.h5')
         checkpoint = ModelCheckpoint(
@@ -71,7 +72,7 @@ def coin_train(local_path=None, coin_list=None):
             verbose=1
         )
 
-        # 모델 학습
+        # Model training
         history = model.fit(
             X_train, Y_train,
             validation_data=(X_test, Y_test),
@@ -80,12 +81,12 @@ def coin_train(local_path=None, coin_list=None):
             callbacks=[checkpoint, earlystopping]
         )
 
-        # Loss 시각화
+        # Loss visualization
         fig, loss_ax = plt.subplots()
-        loss_ax.plot(history.history['loss'], 'y', label='train loss')
-        loss_ax.plot(history.history['val_loss'], 'r', label='val loss')
-        loss_ax.set_xlabel('epoch')
-        loss_ax.set_ylabel('loss')
+        loss_ax.plot(history.history['loss'], 'y', label='Train loss')
+        loss_ax.plot(history.history['val_loss'], 'r', label='Validation loss')
+        loss_ax.set_xlabel('Epochs')
+        loss_ax.set_ylabel('Loss')
         loss_ax.legend(loc='upper left')
         plt.savefig(os.path.join(local_path, "loss", stock + "_loss.png"))
         plt.close(fig)
