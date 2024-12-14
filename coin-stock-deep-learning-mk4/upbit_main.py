@@ -16,7 +16,7 @@ config.gpu_options.allow_growth = True
 
 if __name__ == '__main__':
     local_path = os.getcwd()
-    coin_list_path = os.path.join(local_path, "coin-stock-deep-learning-mk4/coin_list.txt")
+    coin_list_path = os.path.join(local_path, "./coin_list.txt")
     if os.path.isfile(coin_list_path) is False:
         print(coin_list_path)
         exit('coin_list.txt file does not exist.')
