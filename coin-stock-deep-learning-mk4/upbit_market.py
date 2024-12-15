@@ -123,21 +123,3 @@ def get_data(stock, step="day", start_day=None):
     
     # 데이터 역순으로 정렬하여 반환
     return df[::-1]
-
-def get_new_data_sequence(stock, step="day", start_day=None):
-    """
-    60일 전부터의 데이터를 가져와 예측에 사용할 시퀀스 형태로 변환
-    """
-    # 과거 데이터를 가져오기
-    df_price = get_data(stock, step, start_day)
-
-    # 예시로 최근 60개 데이터 추출 (timesteps=60)
-    recent_data = df_price.tail(60)
-
-    # 필요한 피처 선택 (예: 종가, 거래량, 고가, 저가, 시가, 변동성 등)
-    new_data_sequence = recent_data[["opening_price", "high_price", "low_price", "trade_price", "candle_acc_trade_price", "candle_acc_trade_volume"]].values
-
-    # 데이터 확인 (디버깅용)
-    print(f"new_data_sequence 크기: {new_data_sequence.shape}")
-
-    return new_data_sequence
