@@ -23,7 +23,7 @@ if __name__ == '__main__':
         for coin in line.split():
             coin_list.append(coin)
     f.close()
-
-    # get_coin_data(local_path = local_path, start_day="20170901", step = 'days', coin_list = coin_list)
+    get_coin_data(local_path = local_path, start_day="20170901", step = 'days', coin_list = coin_list)
     coin_train(local_path = local_path, coin_list = coin_list)
-    coin_predict(local_path= local_path, coin_list = coin_list)
+    coin_predict(local_path= local_path, coin_list = coin_list) 
+    
