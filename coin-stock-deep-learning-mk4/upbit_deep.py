@@ -18,7 +18,7 @@ def coin_train(local_path=None, coin_list=None):
     training_data_rate = 0.7
     learning_rate = 0.001
     batch_size = 32
-    epochs = 20
+    epochs = 40
 
     KRW_coin_dic = Choose_coin(coin_list=coin_list)
 
@@ -62,7 +62,7 @@ def coin_train(local_path=None, coin_list=None):
         model.compile(optimizer=Adam(learning_rate=learning_rate), loss='mean_squared_error')
 
         # Callbacks setup
-        earlystopping = EarlyStopping(monitor='val_loss', patience=3)
+        earlystopping = EarlyStopping(monitor='val_loss', patience=5)
         filename = os.path.join(local_path, 'checkpoint', stock + '.weights.h5')
         checkpoint = ModelCheckpoint(
             filename,

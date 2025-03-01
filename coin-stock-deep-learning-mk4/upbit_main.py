@@ -10,7 +10,8 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
+def upbit_main():
     local_path = os.getcwd()
     coin_list_path = os.path.join(local_path, "./coin_list.txt")
     if os.path.isfile(coin_list_path) is False:
@@ -24,6 +25,6 @@ if __name__ == '__main__':
             coin_list.append(coin)
     f.close()
 
-    # get_coin_data(local_path = local_path, start_day="20170901", step = 'days', coin_list = coin_list)
+    get_coin_data(local_path = local_path, start_day="20170901", step = 'minute60', coin_list = coin_list)
     coin_train(local_path = local_path, coin_list = coin_list)
     coin_predict(local_path= local_path, coin_list = coin_list)

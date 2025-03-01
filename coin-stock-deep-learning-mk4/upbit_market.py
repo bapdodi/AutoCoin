@@ -84,10 +84,6 @@ def get_coin_data(local_path=None, start_day=None, step=None, coin_list=None):
     return KRW_coin_dic
 
 
-
-
-
-
 def get_data(stock, step="day", start_day=None):
     """
     주어진 기간(start_day부터 60일 전까지) 동안의 과거 데이터를 자동으로 가져오는 함수

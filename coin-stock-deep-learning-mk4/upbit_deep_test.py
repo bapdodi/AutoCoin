@@ -13,13 +13,6 @@ from tqdm import tqdm
 from upbit_market import Choose_coin
 
 def coin_predict(local_path=None, coin_list=None):
-    # GPU 설정
-    gpus = tf.config.list_physical_devices('GPU')
-    if gpus:
-        print("GPU is available")
-        tf.config.experimental.set_memory_growth(gpus[0], True)
-    else:
-        print("GPU is not available")
         
     timesteps = 60
     training_data_rate = 0.7
