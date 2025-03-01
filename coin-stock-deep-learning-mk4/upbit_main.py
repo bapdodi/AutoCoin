@@ -27,4 +27,5 @@ def upbit_main():
 
     get_coin_data(local_path = local_path, start_day="20170901", step = 'minute60', coin_list = coin_list)
     coin_train(local_path = local_path, coin_list = coin_list)
-    coin_predict(local_path= local_path, coin_list = coin_list)
+    coin_predict(local_path= local_path, coin_list = coin_list) 
+    
