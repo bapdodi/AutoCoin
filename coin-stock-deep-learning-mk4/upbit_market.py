@@ -5,6 +5,11 @@ import json
 import re
 import time
 import os
+import logging
+from log_config import setup_logging
+
+setup_logging()
+logger = logging.getLogger('upbit_market')
 
 def Choose_coin(coin_list=None):
     """
@@ -76,7 +81,7 @@ def get_coin_data(local_path=None, start_day=None, step=None, coin_list=None):
             df = pd.concat([df, pd.DataFrame(contents, columns=candle_list, index=dt_list)])
             time.sleep(0.1005)
 
-            print(f"load data: {market}, {i + 1} / {time_diff}")  
+            logger.info(f"load data: {market}, {i + 1} / {time_diff}")  
         
         # 데이터를 파일로 저장
         df[::-1].to_csv(os.path.join(local_path, 'data', market + '.csv'), mode='w')
@@ -115,7 +120,7 @@ def get_data(stock, step="day", start_day=None):
         
         time.sleep(0.1005)  # API 호출 제한을 지키기 위한 대기 시간
         
-        print(f"데이터 로드 중: {stock}, {i + 1} / {time_diff}")
+        logger.info(f"데이터 로드 중: {stock}, {i + 1} / {time_diff}")
     
     # 데이터 역순으로 정렬하여 반환
     return df[::-1]
